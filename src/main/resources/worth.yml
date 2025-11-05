@@ -1,0 +1,5 @@
+#To add materials, check ITEM ID column from https://minecraftitemids.com/types/material
+#Just follow the format below
+
+DIAMOND: 40
+EXPERIENCE_BOTTLE: 10

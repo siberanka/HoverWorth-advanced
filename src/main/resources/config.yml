@@ -1,0 +1,3 @@
+settings:
+  currency-symbol: "$"
+  lore-message: "<white>Worth: <gold>{currency-symbol}{worth}<white>/pc"
