@@ -23,7 +23,7 @@ public class WorthFile {
 
         if (!file.exists()) {
             file.getParentFile().mkdirs();
-            plugin.saveResource("worth.yml", false); // Will copy default if exists in JAR
+            plugin.saveResource("worth.yml", false);
         }
 
         config = YamlConfiguration.loadConfiguration(file);
