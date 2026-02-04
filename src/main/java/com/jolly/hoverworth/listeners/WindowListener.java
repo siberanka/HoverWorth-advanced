@@ -80,7 +80,7 @@ public class WindowListener implements PacketListener, Listener {
                     // GUI -> Always show.
                     // 3. Otherwise, only show if the top inventory is whitelisted.
                     if (windowId == 0 || i >= topSize || topAllowed) {
-                        items.set(i, createVisualItem(packetItem));
+                        items.set(i, createVisualItem(packetItem, player));
                     }
                 }
                 wrapper.setItems(items);
@@ -105,7 +105,7 @@ public class WindowListener implements PacketListener, Listener {
 
                 // Slot -1 is the cursor, usually allowed.
                 if (windowId == 0 || slot == -1 || slot >= topSize || topAllowed) {
-                    wrapper.setItem(createVisualItem(packetItem));
+                    wrapper.setItem(createVisualItem(packetItem, player));
                 }
             }
         } catch (Exception e) {
@@ -201,11 +201,15 @@ public class WindowListener implements PacketListener, Listener {
                 type == InventoryType.DROPPER;
     }
 
-    private ItemStack createVisualItem(ItemStack packetItem) {
+    private ItemStack createVisualItem(ItemStack packetItem, Player player) {
         try {
             org.bukkit.inventory.ItemStack bukkitItem = SpigotConversionUtil.toBukkitItemStack(packetItem);
             if (bukkitItem == null || bukkitItem.getType() == Material.AIR)
                 return packetItem;
+
+            if (player.getGameMode() != org.bukkit.GameMode.SURVIVAL) {
+                return packetItem;
+            }
 
             org.bukkit.inventory.ItemStack clone = bukkitItem.clone();
             ItemMeta meta = clone.getItemMeta();
@@ -258,7 +262,7 @@ public class WindowListener implements PacketListener, Listener {
                             .replace("{worth}", String.valueOf(displayWorth)))
                     .decoration(TextDecoration.ITALIC, false);
 
-            lore.addFirst(worthLine);
+            lore.add(worthLine);
             meta.lore(lore);
 
             addDescriptionLine(meta, lore, itemKey);
