@@ -1,8 +1,0 @@
-#To add materials, check ITEM ID column from https://minecraftitemids.com/types/material
-#Just follow the format below
-
-DIAMOND:
-  worth: 40
-  description: "<italic><gray>These diamonds were mined from the depths of the world"
-EXPERIENCE_BOTTLE:
-  worth: 10
