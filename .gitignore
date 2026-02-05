@@ -111,3 +111,16 @@ buildNumber.properties
 
 # Common working directory
 run/
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# VS Code
+.vscode/
+
+# Temp files
+*.tmp
+*.bak
+*.swp

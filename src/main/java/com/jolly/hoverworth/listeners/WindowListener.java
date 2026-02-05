@@ -26,6 +26,8 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -257,9 +259,13 @@ public class WindowListener implements PacketListener, Listener {
 
             removeExistingWorthLines(lore, defaultLoreMessage, stackLoreMessage);
 
+            DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
+            DecimalFormat df = new DecimalFormat("#.##", symbols);
+            String formattedWorth = df.format(displayWorth);
+
             Component worthLine = mm.deserialize(
                     template.replace("{currency-symbol}", symbol)
-                            .replace("{worth}", String.valueOf(displayWorth)))
+                            .replace("{worth}", formattedWorth))
                     .decoration(TextDecoration.ITALIC, false);
 
             lore.add(worthLine);
