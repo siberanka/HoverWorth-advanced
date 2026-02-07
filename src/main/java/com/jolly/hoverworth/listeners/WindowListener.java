@@ -208,6 +208,7 @@ public class WindowListener implements PacketListener, Listener {
         }
 
         // Small delay to batch rapid click/drag bursts into one sync
+        long delayTicks = Math.max(0L, plugin.getConfig().getLong("settings.inventory-sync-delay-ticks", 2L));
         scheduler.runLater(player, () -> {
             try {
                 if (player.isOnline()) {
@@ -216,7 +217,7 @@ public class WindowListener implements PacketListener, Listener {
             } finally {
                 pendingInventorySync.remove(uuid);
             }
-        }, 2L);
+        }, delayTicks);
     }
 
     // -------------------------------------------------------------------------

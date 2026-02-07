@@ -19,6 +19,8 @@ settings:
   filter-guis: true
   # Show worth in standard Minecraft containers (Chest, Barrel, Shulker, etc.)
   worth-vanilla-storages: true
+  # Inventory refresh delay after click/drag (ticks). 0 = fastest, less batching.
+  inventory-sync-delay-ticks: 2
   # Whitelist specific GUI titles (Case-sensitive)
   worth-guis:
     - "Ender Chest"
