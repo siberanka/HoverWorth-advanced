@@ -23,6 +23,8 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -190,6 +192,9 @@ public class WindowListener implements PacketListener, Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onInventoryClick(InventoryClickEvent event) {
         if (event.getWhoClicked() instanceof Player player) {
+            if (!shouldSyncAfterClick(event)) {
+                return;
+            }
             requestInventorySync(player);
         }
     }
@@ -202,6 +207,10 @@ public class WindowListener implements PacketListener, Listener {
     }
 
     private void requestInventorySync(Player player) {
+        if (!plugin.getConfig().getBoolean("settings.inventory-sync-enabled", true)) {
+            return;
+        }
+
         UUID uuid = player.getUniqueId();
         if (!pendingInventorySync.add(uuid)) {
             return;
@@ -218,6 +227,29 @@ public class WindowListener implements PacketListener, Listener {
                 pendingInventorySync.remove(uuid);
             }
         }, delayTicks);
+    }
+
+    private boolean shouldSyncAfterClick(InventoryClickEvent event) {
+        ClickType click = event.getClick();
+        InventoryAction action = event.getAction();
+        boolean skipDrop = plugin.getConfig().getBoolean("settings.inventory-sync-skip-drop-actions", true);
+        boolean skipOutside = plugin.getConfig().getBoolean("settings.inventory-sync-skip-outside-clicks", true);
+
+        if (skipOutside && (click == ClickType.WINDOW_BORDER_LEFT || click == ClickType.WINDOW_BORDER_RIGHT
+                || event.getRawSlot() == -999)) {
+            return false;
+        }
+
+        if (!skipDrop) {
+            return true;
+        }
+
+        return action != InventoryAction.DROP_ALL_CURSOR
+                && action != InventoryAction.DROP_ALL_SLOT
+                && action != InventoryAction.DROP_ONE_CURSOR
+                && action != InventoryAction.DROP_ONE_SLOT
+                && click != ClickType.DROP
+                && click != ClickType.CONTROL_DROP;
     }
 
     // -------------------------------------------------------------------------

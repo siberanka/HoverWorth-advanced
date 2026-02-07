@@ -42,7 +42,10 @@ settings:
 
   filter-guis: true
   worth-vanilla-storages: true
+  inventory-sync-enabled: true
   inventory-sync-delay-ticks: 2
+  inventory-sync-skip-drop-actions: true
+  inventory-sync-skip-outside-clicks: true
   worth-guis:
     - "Ender Chest"
 ```

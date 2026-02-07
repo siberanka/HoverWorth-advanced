@@ -19,8 +19,14 @@ settings:
   filter-guis: true
   # Show worth in standard Minecraft containers (Chest, Barrel, Shulker, etc.)
   worth-vanilla-storages: true
+  # Master toggle for forced inventory sync after click/drag.
+  inventory-sync-enabled: true
   # Inventory refresh delay after click/drag (ticks). 0 = fastest, less batching.
   inventory-sync-delay-ticks: 2
+  # Skip forced sync for fast item drops (Q / Ctrl+Q / drop actions).
+  inventory-sync-skip-drop-actions: true
+  # Skip forced sync for outside click/drop area.
+  inventory-sync-skip-outside-clicks: true
   # Whitelist specific GUI titles (Case-sensitive)
   worth-guis:
     - "Ender Chest"
