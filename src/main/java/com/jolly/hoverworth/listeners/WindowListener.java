@@ -24,6 +24,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.text.DecimalFormat;
@@ -40,6 +41,8 @@ public class WindowListener implements PacketListener, Listener {
     // Track the size of the open top inventory to know where the player inventory
     // starts
     private final Map<UUID, Integer> openContainerSizes = new ConcurrentHashMap<>();
+    // Coalesce refresh operations to avoid updateInventory spam
+    private final Set<UUID> pendingInventorySync = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     private final MiniMessage mm = MiniMessage.miniMessage();
 
@@ -173,20 +176,47 @@ public class WindowListener implements PacketListener, Listener {
         UUID uuid = event.getPlayer().getUniqueId();
         allowedTopInventories.remove(uuid);
         openContainerSizes.remove(uuid);
+        pendingInventorySync.remove(uuid);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        UUID uuid = event.getPlayer().getUniqueId();
+        allowedTopInventories.remove(uuid);
+        openContainerSizes.remove(uuid);
+        pendingInventorySync.remove(uuid);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onInventoryClick(InventoryClickEvent event) {
         if (event.getWhoClicked() instanceof Player player) {
-            scheduler.runLater(player, player::updateInventory, 1L);
+            requestInventorySync(player);
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onInventoryDrag(InventoryDragEvent event) {
         if (event.getWhoClicked() instanceof Player player) {
-            scheduler.runLater(player, player::updateInventory, 1L);
+            requestInventorySync(player);
         }
+    }
+
+    private void requestInventorySync(Player player) {
+        UUID uuid = player.getUniqueId();
+        if (!pendingInventorySync.add(uuid)) {
+            return;
+        }
+
+        // Small delay to batch rapid click/drag bursts into one sync
+        scheduler.runLater(player, () -> {
+            try {
+                if (player.isOnline()) {
+                    player.updateInventory();
+                }
+            } finally {
+                pendingInventorySync.remove(uuid);
+            }
+        }, 2L);
     }
 
     // -------------------------------------------------------------------------
