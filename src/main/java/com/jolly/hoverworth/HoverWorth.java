@@ -4,19 +4,20 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.jolly.hoverworth.commands.Reload;
 import com.jolly.hoverworth.integrations.EconomyShopGUI;
+import com.jolly.hoverworth.integrations.UltimateShopIntegration;
 import com.jolly.hoverworth.listeners.WindowListener;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public final class HoverWorth extends JavaPlugin {
     private WorthFile worthFile;
     private EconomyShopGUI economyShopGUI;
+    private UltimateShopIntegration ultimateShopIntegration;
     private Scheduler scheduler;
     public boolean debug = false;
 
@@ -34,6 +35,7 @@ public final class HoverWorth extends JavaPlugin {
         int pluginId = 27893;
         Metrics metrics = new Metrics(this, pluginId);
         economyShopGUI = new EconomyShopGUI(this);
+        ultimateShopIntegration = new UltimateShopIntegration(this);
         PacketEvents.getAPI().init();
         worthFile = new WorthFile(this);
 
@@ -48,10 +50,12 @@ public final class HoverWorth extends JavaPlugin {
         }
 
         Bukkit.getPluginManager().registerEvents(windowListener, this);
-        getLogger().info("HoverWorth enabled ✅ (Debug: " + debug + ")");
-        if (getConfig().getString("settings.integration").equalsIgnoreCase("EconomyShopGUI")) {
+        getLogger().info("HoverWorth enabled (Debug: " + debug + ")");
+
+        String integration = getConfig().getString("settings.integration", "none");
+        if (integration.equalsIgnoreCase("EconomyShopGUI")) {
             economyShopGUI.loadESGUI();
-            getLogger().info("EconomyShopGUI integration enabled ✅");
+            getLogger().info("EconomyShopGUI integration enabled");
 
             if (debug) {
                 Map<Material, List<EconomyShopGUI.ESGUIItem>> materials = economyShopGUI.esguiWorths;
@@ -83,6 +87,11 @@ public final class HoverWorth extends JavaPlugin {
             }
             return;
         }
+
+        if (integration.equalsIgnoreCase("UltimateShop")) {
+            ultimateShopIntegration.init();
+            getLogger().info("UltimateShop integration enabled");
+        }
     }
 
     @Override
@@ -96,5 +105,9 @@ public final class HoverWorth extends JavaPlugin {
 
     public EconomyShopGUI getEconomyShopGUI() {
         return economyShopGUI;
+    }
+
+    public UltimateShopIntegration getUltimateShopIntegration() {
+        return ultimateShopIntegration;
     }
 }

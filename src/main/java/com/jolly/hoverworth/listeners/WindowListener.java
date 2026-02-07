@@ -221,10 +221,14 @@ public class WindowListener implements PacketListener, Listener {
             Material itemType = clone.getType();
             String itemKey = itemType.name().toUpperCase();
             Double unitWorth = null;
+            String integration = plugin.getConfig().getString("settings.integration", "none");
 
-            if ("EconomyShopGUI".equalsIgnoreCase(plugin.getConfig().getString("settings.integration", "none"))
+            if ("EconomyShopGUI".equalsIgnoreCase(integration)
                     && plugin.getEconomyShopGUI() != null) {
                 unitWorth = plugin.getEconomyShopGUI().getESGUIItemWorth(itemType, meta);
+            } else if ("UltimateShop".equalsIgnoreCase(integration)
+                    && plugin.getUltimateShopIntegration() != null) {
+                unitWorth = plugin.getUltimateShopIntegration().getSellWorth(player, clone);
             }
 
             if (unitWorth == null) {

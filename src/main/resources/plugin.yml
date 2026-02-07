@@ -1,10 +1,11 @@
 name: HoverWorth
-version: '2.0.1'
+version: '2.0.3'
 main: com.jolly.hoverworth.HoverWorth
 api-version: '1.21'
 authors: [ Jolly, siberanka ]
 folia-supported: true
 depend: [packetevents]
+softdepend: [EconomyShopGUI, UltimateShop]
 commands:
   hwreload:
     usage: /hwreload

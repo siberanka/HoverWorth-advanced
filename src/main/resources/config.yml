@@ -5,7 +5,8 @@ settings:
   lore-message: "<white>Worth: <gold>{worth}{currency-symbol}"
   #----------Shop Integration for worth------------
   #all integrations will still read the item's description from worth.yml
-  #available options: EconomyShopGUI (will read all shops and their sell values)
+  #available options: EconomyShopGUI (reads all shops and their sell values)
+  #UltimateShop (reads sold price from UltimateShop API; dynamic sell price if enabled)
   #none (will use worth.yml for prices)
   integration: "none"
   

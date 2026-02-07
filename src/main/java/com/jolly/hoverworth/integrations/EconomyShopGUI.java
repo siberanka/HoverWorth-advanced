@@ -3,6 +3,7 @@ package com.jolly.hoverworth.integrations;
 import com.jolly.hoverworth.HoverWorth;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
@@ -25,7 +26,10 @@ public class EconomyShopGUI {
     }
 
     public void loadESGUI() {
-        File shopFolder = new File(Bukkit.getPluginManager().getPlugin("EconomyShopGUI").getDataFolder(), "shops");
+        esguiWorths.clear();
+        Plugin esgui = Bukkit.getPluginManager().getPlugin("EconomyShopGUI");
+        if (esgui == null || !esgui.isEnabled()) return;
+        File shopFolder = new File(esgui.getDataFolder(), "shops");
         if (!shopFolder.exists()) return;
 
         for (File file : Objects.requireNonNull(shopFolder.listFiles((dir, name) -> name.endsWith(".yml")))) {

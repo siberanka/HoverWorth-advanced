@@ -1,12 +1,10 @@
 package com.jolly.hoverworth.commands;
 
 import com.jolly.hoverworth.HoverWorth;
-import com.jolly.hoverworth.integrations.EconomyShopGUI;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 public class Reload implements CommandExecutor {
     private final MiniMessage mm = MiniMessage.miniMessage();
@@ -16,17 +14,19 @@ public class Reload implements CommandExecutor {
     }
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String s, String [] args) {
-        Player player = (Player) sender;
         if (!sender.hasPermission("hoverworth.reload")) {
             sender.sendMessage(mm.deserialize("<red>You do not have permission to use this command."));
             return true;
         }
         plugin.reloadConfig();
         plugin.getWorthFile().reload();
-        if (plugin.getConfig().getString("settings.integration").equalsIgnoreCase("EconomyShopGUI")) {
+        String integration = plugin.getConfig().getString("settings.integration", "none");
+        if (integration.equalsIgnoreCase("EconomyShopGUI")) {
             plugin.getEconomyShopGUI().loadESGUI();
+        } else if (integration.equalsIgnoreCase("UltimateShop")) {
+            plugin.getUltimateShopIntegration().init();
         }
-        player.sendMessage(mm.deserialize("<green>Successfully reloaded the HoverWorth configuration."));
+        sender.sendMessage(mm.deserialize("<green>Successfully reloaded the HoverWorth configuration."));
         return true;
     }
 }

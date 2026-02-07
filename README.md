@@ -1,68 +1,62 @@
-# HoverWorth 💎
+﻿# HoverWorth v2.0.3
 
-**HoverWorth** is a high-performance, visual-only item worth display plugin designed for modern Minecraft servers. It provides players with instant feedback on item values through hover lore, without ever modifying the actual item data.
+HoverWorth is a high-performance, visual-only item worth display plugin for modern Minecraft servers.
+It shows item values in hover lore without modifying real item data.
 
-Built with **Folia** and **Paper** compatibility in mind, it uses high-efficiency packet interception to ensure zero impact on your server's performance and data integrity.
+Built for Paper/Folia with PacketEvents-based packet injection.
 
-## ✨ Features
+## Features
 
-*   **⚡ Visual-Only Lore**: Lore is injected directly into network packets. No permanent changes are made to items, making it 100% dupe-proof and safe for economy balance.
-*   **☁️ Folia & Paper Support**: Fully compatible with Folia's regional threading model.
-*   **🛒 Shop Integration**: Seamlessly integrates with **EconomyShopGUI** to fetch real-time sell prices.
-*   **📦 Stack Price Calculation**: Optionally displays the total value of an item stack (e.g., "Worth: $64" for a stack of 64).
-*   **🛡️ Smart GUI Filtering**:
-    *   **Split-View**: Automatically hides worth lore in custom plugin menus (to keep them clean) while keeping lore visible in the player's own inventory.
-    *   **Vanilla Whitelist**: Automatically shows lore in standard chests, barrels, and shulkers.
-    *   **Keyword Whitelist**: Enable lore in specific custom menus using title keywords (e.g., "Storage").
-*   **📝 Custom Descriptions**: Add flavor text or additional info to items via `worth.yml`.
-*   **🔄 Dynamic Reload**: Update prices and settings on the fly with `/hwreload`.
+- Visual-only lore injection (no permanent ItemStack changes)
+- Paper and Folia support
+- Shop integrations:
+  - EconomyShopGUI: reads configured sell prices
+  - UltimateShop: reads sell prices from UltimateShop API
+    - if dynamic price sell is enabled, dynamic sell value is used
+    - if dynamic price sell is disabled, normal sell value is used
+- Stack total calculation support
+- GUI filtering (vanilla storage + whitelist-based custom GUIs)
+- Item descriptions from `worth.yml`
+- Live reload with `/hwreload`
 
-## 🛠️ Commands & Permissions
+## Commands and Permissions
 
 | Command | Description | Permission |
-| :--- | :--- | :--- |
-| `/hwreload` | Reloads the configuration and worth files | `hoverworth.reload` |
+| --- | --- | --- |
+| `/hwreload` | Reloads config and worth data | `hoverworth.reload` |
 
-## ⚙️ Configuration
+## Configuration
 
 ```yaml
 debug: false
 
 settings:
   currency-symbol: "$"
-  # Message for single items
   lore-message: "<white>Worth: <gold>{worth}{currency-symbol}"
-  
-  # Available integrations: EconomyShopGUI, none
-  integration: "none"
-  
-  # Calculate total price for stacks (e.g. 64x items)
+
+  # Available options: EconomyShopGUI, UltimateShop, none
+  integration: "ultimateshop"
+
   calculate-stack-price: true
-  # Message format for stack prices
   stack-lore-message: "<white>Worth: <gold>{worth}{currency-symbol}"
-  
-  # --- GUI Filtering ---
-  # Hide worth lore in custom plugin GUIs
+
   filter-guis: true
-  # Show worth in standard Minecraft containers (Chest, Barrel, etc.)
   worth-vanilla-storages: true
-  # Whitelist specific GUI titles (Case-sensitive)
   worth-guis:
     - "Ender Chest"
-    - "Storage"
 ```
 
-## 📖 Installation
+## Installation
 
-1.  Download the latest `HoverWorth.jar`.
-2.  Place it in your server's `plugins` folder.
-3.  (Optional) Install **EconomyShopGUI** for automatic price fetching.
-4.  Restart your server.
-5.  Configure your prices in `worth.yml` or via your shop plugin.
+1. Download the latest `HoverWorth.jar`.
+2. Place it in your server `plugins` folder.
+3. Install optional dependencies as needed:
+   - `EconomyShopGUI` for EconomyShopGUI integration
+   - `UltimateShop` for UltimateShop integration
+4. Start or restart the server.
+5. Configure `settings.integration` and your price source.
 
-## 🏗️ For Developers
+## Notes for Developers
 
-HoverWorth uses **PacketEvents** to handle item modification at the protocol level. This ensures that the server-side `ItemStack` remains "clean". When an item is moved, shift-clicked, or dragged, the plugin forces a visual refresh to keep the lore consistent without causing desync.
-
----
-*Developed with ❤️ for high-performance Minecraft servers.*
+HoverWorth uses PacketEvents to modify display data at protocol level only.
+Server-side items stay unchanged; lore is re-injected on inventory updates to prevent desync.
