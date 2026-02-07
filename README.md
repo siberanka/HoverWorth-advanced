@@ -1,4 +1,4 @@
-# HoverWorth v2.0.4
+# HoverWorth v2.0.5
 
 HoverWorth is a high-performance, visual-only item worth display plugin for modern Minecraft servers.
 It shows item values in hover lore without modifying real item data.
@@ -46,6 +46,10 @@ settings:
   inventory-sync-delay-ticks: 2
   inventory-sync-skip-drop-actions: true
   inventory-sync-skip-outside-clicks: true
+  transfer-burst:
+    window-ms: 250
+    actions-threshold: 8
+    suspend-worth-ticks: 8
   worth-guis:
     - "Ender Chest"
 ```
@@ -64,4 +68,5 @@ settings:
 
 HoverWorth uses PacketEvents to modify display data at protocol level only.
 Server-side items stay unchanged; lore is re-injected on inventory updates to prevent desync.
+
 

@@ -1,5 +1,5 @@
 name: HoverWorth
-version: '2.0.4'
+version: '2.0.5'
 main: com.jolly.hoverworth.HoverWorth
 api-version: '1.21'
 authors: [ Jolly, siberanka ]
@@ -14,3 +14,4 @@ commands:
 permissions:
   hoverworth.reload:
     default: op
+

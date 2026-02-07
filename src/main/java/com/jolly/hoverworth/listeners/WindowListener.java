@@ -45,6 +45,11 @@ public class WindowListener implements PacketListener, Listener {
     private final Map<UUID, Integer> openContainerSizes = new ConcurrentHashMap<>();
     // Coalesce refresh operations to avoid updateInventory spam
     private final Set<UUID> pendingInventorySync = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    // Burst transfer tracking to temporarily pause lore injection during heavy moves
+    private final Map<UUID, Long> activityWindowStartMs = new ConcurrentHashMap<>();
+    private final Map<UUID, Integer> activityCountInWindow = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> suspendedWorthUntilMs = new ConcurrentHashMap<>();
+    private final Set<UUID> pendingPostBurstRefresh = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     private final MiniMessage mm = MiniMessage.miniMessage();
 
@@ -73,6 +78,9 @@ public class WindowListener implements PacketListener, Listener {
                     return;
 
                 UUID uuid = player.getUniqueId();
+                if (isWorthTemporarilySuspended(uuid)) {
+                    return;
+                }
                 int topSize = openContainerSizes.getOrDefault(uuid, 0);
                 boolean topAllowed = windowId == 0 || allowedTopInventories.contains(uuid);
 
@@ -107,6 +115,9 @@ public class WindowListener implements PacketListener, Listener {
                     return;
 
                 UUID uuid = player.getUniqueId();
+                if (isWorthTemporarilySuspended(uuid)) {
+                    return;
+                }
                 int topSize = openContainerSizes.getOrDefault(uuid, 0);
                 boolean topAllowed = windowId == 0 || allowedTopInventories.contains(uuid);
 
@@ -179,6 +190,10 @@ public class WindowListener implements PacketListener, Listener {
         allowedTopInventories.remove(uuid);
         openContainerSizes.remove(uuid);
         pendingInventorySync.remove(uuid);
+        activityWindowStartMs.remove(uuid);
+        activityCountInWindow.remove(uuid);
+        suspendedWorthUntilMs.remove(uuid);
+        pendingPostBurstRefresh.remove(uuid);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -187,12 +202,20 @@ public class WindowListener implements PacketListener, Listener {
         allowedTopInventories.remove(uuid);
         openContainerSizes.remove(uuid);
         pendingInventorySync.remove(uuid);
+        activityWindowStartMs.remove(uuid);
+        activityCountInWindow.remove(uuid);
+        suspendedWorthUntilMs.remove(uuid);
+        pendingPostBurstRefresh.remove(uuid);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onInventoryClick(InventoryClickEvent event) {
         if (event.getWhoClicked() instanceof Player player) {
+            registerTransferActivity(player);
             if (!shouldSyncAfterClick(event)) {
+                return;
+            }
+            if (isWorthTemporarilySuspended(player.getUniqueId())) {
                 return;
             }
             requestInventorySync(player);
@@ -202,6 +225,10 @@ public class WindowListener implements PacketListener, Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onInventoryDrag(InventoryDragEvent event) {
         if (event.getWhoClicked() instanceof Player player) {
+            registerTransferActivity(player);
+            if (isWorthTemporarilySuspended(player.getUniqueId())) {
+                return;
+            }
             requestInventorySync(player);
         }
     }
@@ -227,6 +254,68 @@ public class WindowListener implements PacketListener, Listener {
                 pendingInventorySync.remove(uuid);
             }
         }, delayTicks);
+    }
+
+    private void registerTransferActivity(Player player) {
+        UUID uuid = player.getUniqueId();
+        long now = System.currentTimeMillis();
+        long windowMs = Math.max(50L, plugin.getConfig().getLong("settings.transfer-burst.window-ms", 250L));
+        int threshold = Math.max(2, plugin.getConfig().getInt("settings.transfer-burst.actions-threshold", 8));
+
+        long windowStart = activityWindowStartMs.getOrDefault(uuid, 0L);
+        if (windowStart == 0L || (now - windowStart) > windowMs) {
+            windowStart = now;
+            activityWindowStartMs.put(uuid, windowStart);
+            activityCountInWindow.put(uuid, 0);
+        }
+
+        int count = activityCountInWindow.merge(uuid, 1, Integer::sum);
+        if (count < threshold) {
+            return;
+        }
+
+        long suspendTicks = Math.max(1L, plugin.getConfig().getLong("settings.transfer-burst.suspend-worth-ticks", 8L));
+        long suspendUntil = now + (suspendTicks * 50L);
+        long currentUntil = suspendedWorthUntilMs.getOrDefault(uuid, 0L);
+        if (suspendUntil > currentUntil) {
+            suspendedWorthUntilMs.put(uuid, suspendUntil);
+            schedulePostBurstRefresh(player, suspendTicks + 1L);
+        }
+    }
+
+    private void schedulePostBurstRefresh(Player player, long delayTicks) {
+        UUID uuid = player.getUniqueId();
+        if (!pendingPostBurstRefresh.add(uuid)) {
+            return;
+        }
+        scheduler.runLater(player, () -> tryPostBurstRefresh(player), Math.max(1L, delayTicks));
+    }
+
+    private void tryPostBurstRefresh(Player player) {
+        UUID uuid = player.getUniqueId();
+        if (!player.isOnline()) {
+            pendingPostBurstRefresh.remove(uuid);
+            return;
+        }
+
+        long now = System.currentTimeMillis();
+        long until = suspendedWorthUntilMs.getOrDefault(uuid, 0L);
+        if (now < until) {
+            long remainingTicks = Math.max(1L, (long) Math.ceil((until - now) / 50.0D));
+            scheduler.runLater(player, () -> tryPostBurstRefresh(player), remainingTicks);
+            return;
+        }
+
+        suspendedWorthUntilMs.remove(uuid);
+        activityWindowStartMs.remove(uuid);
+        activityCountInWindow.remove(uuid);
+        pendingPostBurstRefresh.remove(uuid);
+        requestInventorySync(player);
+    }
+
+    private boolean isWorthTemporarilySuspended(UUID uuid) {
+        long until = suspendedWorthUntilMs.getOrDefault(uuid, 0L);
+        return until > System.currentTimeMillis();
     }
 
     private boolean shouldSyncAfterClick(InventoryClickEvent event) {

@@ -22,11 +22,19 @@ settings:
   # Master toggle for forced inventory sync after click/drag.
   inventory-sync-enabled: true
   # Inventory refresh delay after click/drag (ticks). 0 = fastest, less batching.
-  inventory-sync-delay-ticks: 2
+  inventory-sync-delay-ticks: 40
   # Skip forced sync for fast item drops (Q / Ctrl+Q / drop actions).
   inventory-sync-skip-drop-actions: true
   # Skip forced sync for outside click/drop area.
   inventory-sync-skip-outside-clicks: true
+  # During rapid transfer bursts, temporarily pause worth lore injection.
+  transfer-burst:
+    # Count actions inside this rolling window.
+    window-ms: 250
+    # If action count reaches this number in window, pause worth briefly.
+    actions-threshold: 3
+    # Pause duration (ticks) before worth is shown again.
+    suspend-worth-ticks: 40
   # Whitelist specific GUI titles (Case-sensitive)
   worth-guis:
     - "Ender Chest"
